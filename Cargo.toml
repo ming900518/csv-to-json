@@ -1,0 +1,14 @@
+[package]
+name = "csv-to-json"
+version = "0.1.0"
+edition = "2021"
+authors = ["Ming Chang <mail@mingchang.tw>"]
+description = "CSV to JSON - A simple CLI tool for converting CSV file content to JSON."
+
+[dependencies]
+clap = { version = "*", features = ["derive"] }
+csv = "*"
+mimalloc = "*"
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
+rayon = "*"
