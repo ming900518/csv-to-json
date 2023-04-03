@@ -1,7 +1,8 @@
-use std::{collections::BTreeMap, fs::write, path::PathBuf, process::exit, sync::Arc};
+use std::{fs::write, path::PathBuf, process::exit, sync::Arc};
 
 use clap::Parser;
 use csv::{Reader, StringRecord};
+use indexmap::IndexMap;
 use mimalloc::MiMalloc;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use serde_json::to_string;
@@ -47,14 +48,14 @@ fn main() {
         .filter(|row_result| row_result.is_ok())
         .map(|row_result| {
             let row = row_result.unwrap();
-            let mut map = BTreeMap::new();
+            let mut map = IndexMap::new();
             let header = header_arc.clone();
             header.iter().enumerate().for_each(|(i, head)| {
                 map.insert(head.to_owned(), row.clone().get(i).unwrap().to_owned());
             });
             map
         })
-        .collect::<Vec<BTreeMap<String, String>>>();
+        .collect::<Vec<IndexMap<String, String>>>();
 
     let json = to_string(&result_vec).expect("Unable to serialize the result.");
 
