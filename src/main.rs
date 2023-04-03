@@ -30,7 +30,7 @@ fn main() {
             .expect("File not found.")
             .has_header(true)
             .finish()
-            .expect("Error when ."),
+            .expect("Error when processing DataFrame."),
     );
 
     let column_names = Arc::new(data_frame.get_column_names());
