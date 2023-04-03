@@ -1,10 +1,10 @@
-use std::{fs::write, path::PathBuf, process::exit, sync::Arc};
+use std::{fs::write, path::PathBuf, sync::Arc};
 
 use clap::Parser;
-use csv::{Reader, StringRecord};
 use indexmap::IndexMap;
 use mimalloc::MiMalloc;
-use rayon::prelude::{IntoParallelIterator, ParallelIterator};
+use polars::prelude::*;
+use rayon::prelude::*;
 use serde_json::to_string;
 
 #[derive(Parser, Debug)]
@@ -24,36 +24,28 @@ static GLOBAL: MiMalloc = MiMalloc;
 
 fn main() {
     let args = Args::parse();
-    let mut csv_reader = match Reader::from_path(args.input) {
-        Ok(reader) => reader,
-        Err(error) => {
-            eprintln!("Error occured when opening CSV file reader: {}", error);
-            exit(1)
-        }
-    };
 
-    let header_arc = if let Ok(header) = csv_reader.headers() {
-        Arc::new(header.clone())
-    } else {
-        eprintln!("Unable to structure JSON because there's no header found in the CSV file you provided.");
-        exit(1)
-    };
+    let data_frame = Arc::new(
+        CsvReader::from_path(args.input)
+            .expect("File not found.")
+            .has_header(true)
+            .finish()
+            .expect("Error when ."),
+    );
 
-    let rows = csv_reader
-        .into_records()
-        .collect::<Vec<Result<StringRecord, csv::Error>>>();
+    let column_names = Arc::new(data_frame.get_column_names());
 
-    let result_vec = rows
+    let height = data_frame.height();
+
+    let result_vec = (0..height)
         .into_par_iter()
-        .filter(|row_result| row_result.is_ok())
-        .map(|row_result| {
-            let row = row_result.unwrap();
-            let mut map = IndexMap::new();
-            let header = header_arc.clone();
-            header.iter().enumerate().for_each(|(i, head)| {
-                map.insert(head.to_owned(), row.clone().get(i).unwrap().to_owned());
-            });
-            map
+        .map(|i| {
+            let row = data_frame.get_row(i).unwrap().0;
+            column_names
+                .iter()
+                .zip(row.iter())
+                .map(|(column, data)| (column.to_string(), data.get_str().unwrap_or("").to_owned()))
+                .collect::<IndexMap<String, String>>()
         })
         .collect::<Vec<IndexMap<String, String>>>();
 
