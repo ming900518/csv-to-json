@@ -141,7 +141,8 @@ SIMD？？？你說辣個被 Intel 砍掉的 AVX-512 還能拿來加速？
 > 我知道 M1 MacBook 沒有 AVX 系列指令集，不過如果我寫 ARM NEON
 > 大概就沒幾個人知道那是啥了
 
-裝上 nightly Rust toolchain ，features 裝好，`RUSTFLAGS="-C target-cpu=native" cargo +nightly build --release`！
+裝上 nightly Rust toolchain ，features
+裝好，`RUSTFLAGS="-C target-cpu=native" cargo +nightly build --release`！
 
 ```
 Benchmark 1: ./csv-to-json -i test.csv -o output-1.json
@@ -176,3 +177,22 @@ Summary
 
 不過到目前為止靠軟體的修改達到了 60% 的性能進步，這點依然讓我十分開心。
 
+> 下面是在 Intel Core i7 12700（支援 AVX2 指令集，AVX-512 不支援）測試的結果：
+>
+> ```
+> Benchmark 1: ./csv-to-json -i test.csv -o output-1.json
+>   Time (mean ± σ):      2.644 s ±  0.010 s    [User: 2.039 s, System: 0.605 s]
+>   Range (min … max):    2.637 s …  2.660 s    5 runs
+>
+> Benchmark 2: ./csv-to-json-simd -i test.csv -o output-2.json
+>   Time (mean ± σ):      1.978 s ±  0.007 s    [User: 2.702 s, System: 1.082 s]
+>   Range (min … max):    1.969 s …  1.989 s    5 runs
+>  
+> Summary
+>   './csv-to-json-simd -i test.csv -o output-2.json' ran
+>     1.34 ± 0.01 times faster than './csv-to-json -i test.csv -o output-1.json'
+> ```
+>
+> 即使是在支援更多 SIMD 指令集的電腦上，也沒有顯著的性能進步
+>
+> 可能是我這種使用場景本來就不是 SIMD 的強項吧
