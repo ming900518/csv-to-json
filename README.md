@@ -216,8 +216,9 @@ Summary
 1. 自己看看 serde_json 是如何實現這支程式的，然後寫多線程版
 2. 在處理資料的時候就先把資料序列化，最後再將資料組合起來
 
-如果未來有空我可能會去看看怎麼實作解法一吧，但解法二目前是比較好的解法，第一是我可以直接利用資料處理的
-parallel iterator 不需要重新迭代，第二是這樣也比較簡單好處理
+解法二目前是比較好的解法：
+第一是我可以直接利用資料處理的 parallel iterator ，不需要重新迭代
+第二是這樣也比較簡單
 
 所以就實作一下，跑個 hyperfine 吧
 
@@ -256,3 +257,17 @@ Summary
 ```
 
 比起原始版快了 83% ，平均用時也壓到兩秒以內了！
+
+再來看看 flamegraph
+
+- Before
+
+<img width="1440" alt="1" src="https://user-images.githubusercontent.com/15919723/229730639-6488f3f1-d8ca-4d33-a056-d8e1b2100e1a.png">
+
+- After
+
+<img width="1440" alt="2" src="https://user-images.githubusercontent.com/15919723/229730808-3ac27e2b-aa97-4a32-ac05-0f36da835e29.png">
+
+同樣以 "serde" 做為關鍵字（紫色區塊是查詢結果），可以清楚的看到序列化的工作已經被分散開來了。
+
+未來可能會找個時間嘗試實作 serde_json 搭配 Rayon 進行平行序列化吧，看起來提升挺大的。
