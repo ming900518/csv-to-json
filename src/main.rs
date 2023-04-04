@@ -1,4 +1,4 @@
-use std::{fs::write, path::PathBuf, sync::Arc};
+use std::{fs::write, path::PathBuf};
 
 use clap::Parser;
 use indexmap::IndexMap;
@@ -30,29 +30,45 @@ fn main() {
             .expect("File not found.")
             .has_header(true)
             .finish()
-            .expect("Error when processing DataFrame."),
+            .expect("Error occured when processing DataFrame."),
     );
 
     let column_names = Arc::new(data_frame.get_column_names());
 
     let height = data_frame.height();
 
-    let result_vec = (0..height)
+    let buffer = (0..height)
         .into_par_iter()
         .map(|i| {
-            let row = data_frame.get_row(i).unwrap().0;
-            column_names
-                .iter()
-                .zip(row.iter())
-                .map(|(column, data)| (column.to_string(), data.get_str().unwrap_or("").to_owned()))
-                .collect::<IndexMap<String, String>>()
-        })
-        .collect::<Vec<IndexMap<String, String>>>();
+            let row = data_frame
+                .get_row(i)
+                .expect(&*format!(
+                    "Could not access row {}, please try again.",
+                    i + 2
+                ))
+                .0;
 
-    let json = to_string(&result_vec).expect("Unable to serialize the result.");
+            let object = column_names
+                .par_iter()
+                .zip(row.par_iter())
+                .map(|(column, data)| (column.to_string(), data.get_str().unwrap_or("").to_owned()))
+                .collect::<IndexMap<String, String>>();
+
+            to_string(&object).expect("Unable to serialize the result.")
+        })
+        .collect::<Vec<String>>();
+
+    let result = if height > 1 {
+        format!("[{}]", buffer.join(","))
+    } else {
+        buffer
+            .get(0)
+            .expect("Unable to get value from buffer.")
+            .clone()
+    };
 
     match args.output {
-        Some(path) => write(path, &*json).expect("Unable to write the output file."),
-        None => println!("{}", json),
+        Some(path) => write(path, result).expect("Unable to write the output file."),
+        None => println!("{}", result),
     }
 }

@@ -136,10 +136,9 @@ Summary
 正當我滿意的準備 `git push` 時， Polars
 的文件有個[小段落](https://pola-rs.github.io/polars/polars/index.html#simd)引起了我的注意
 
-SIMD？？？你說辣個被 Intel 砍掉的 AVX-512 還能拿來加速？
+SIMD ？？？你說辣個被 Intel 砍掉的 AVX-512 還能拿來加速？
 
-> 我知道 M1 MacBook 沒有 AVX 系列指令集，不過如果我寫 ARM NEON
-> 大概就沒幾個人知道那是啥了
+> M1 MacBook 也有 ARM 的 NEON 可以用
 
 裝上 nightly Rust toolchain ，features
 裝好，`RUSTFLAGS="-C target-cpu=native" cargo +nightly build --release`！
@@ -193,6 +192,64 @@ Summary
 >     1.34 ± 0.01 times faster than './csv-to-json -i test.csv -o output-1.json'
 > ```
 >
-> 即使是在支援更多 SIMD 指令集的電腦上，也沒有顯著的性能進步
+> 可以看到，即使是在支援更多 SIMD 指令集的電腦上，也沒有顯著的性能進步
 >
-> 可能是我這種使用場景本來就不是 SIMD 的強項吧
+> 可能我這種使用場景，本來就不是 SIMD 的強項吧
+
+### 一直被忽略的 Serialize
+
+當我仔細的觀察程式的 CPU 佔用時，其實有個點一直讓我很不解：明明都用上了 Rayon
+，怎麼在全核心跑完後，程式還沒結束執行呢
+
+重新閱讀了一次程式，再跑了下
+[flamegraph](https://github.com/flamegraph-rs/flamegraph) ，發現 serde_json 的
+[`to_string`](https://docs.rs/serde_json/1.0.95/serde_json/fn.to_string.html)
+似乎是性能瓶頸
+
+用單線程跑 570 幾 MB 的資料確實不是很理想，但我花了一整天都沒看出來，太尷尬了 😅
+
+這時我想到了兩種解法：
+
+1. 自己看看 serde_json 是如何實現這支程式的，然後寫多線程版
+2. 在處理資料的時候就先把資料序列化，最後再將資料組合起來
+
+如果未來有空我可能會去看看怎麼實作解法一吧，但解法二目前是比較好的解法，第一是我可以直接利用資料處理的
+parallel iterator 不需要重新迭代，第二是這樣也比較簡單好處理
+
+所以就實作一下，跑個 hyperfine 吧
+
+```
+Benchmark 1: ./csv-to-json -i test.csv -o output-1.json
+  Time (mean ± σ):      3.223 s ±  0.019 s    [User: 2.605 s, System: 0.533 s]
+  Range (min … max):    3.204 s …  3.245 s    5 runs
+
+Benchmark 2: ./csv-to-json-rayon -i test.csv -o output-2.json
+  Time (mean ± σ):      2.738 s ±  0.015 s    [User: 4.500 s, System: 0.760 s]
+  Range (min … max):    2.724 s …  2.757 s    5 runs
+
+Benchmark 3: ./csv-to-json-indexmap -i test.csv -o output-3.json
+  Time (mean ± σ):      2.525 s ±  0.012 s    [User: 4.557 s, System: 0.613 s]
+  Range (min … max):    2.512 s …  2.541 s    5 runs
+
+Benchmark 4: ./csv-to-json-polar -i test.csv -o output-4.json
+  Time (mean ± σ):      2.070 s ±  0.021 s    [User: 2.550 s, System: 0.537 s]
+  Range (min … max):    2.042 s …  2.089 s    5 runs
+
+Benchmark 5: ./csv-to-json-simd -i test.csv -o output-5.json
+  Time (mean ± σ):      2.001 s ±  0.035 s    [User: 2.482 s, System: 0.540 s]
+  Range (min … max):    1.972 s …  2.057 s    5 runs
+
+Benchmark 6: ./csv-to-json-parallel-serialize  -i test.csv -o output-6.json
+  Time (mean ± σ):      1.761 s ±  0.010 s    [User: 3.689 s, System: 0.497 s]
+  Range (min … max):    1.749 s …  1.771 s    5 runs
+
+Summary
+  './csv-to-json-parallel-serialize  -i test.csv -o output-6.json' ran
+    1.14 ± 0.02 times faster than './csv-to-json-simd -i test.csv -o output-5.json'
+    1.18 ± 0.01 times faster than './csv-to-json-polar -i test.csv -o output-4.json'
+    1.43 ± 0.01 times faster than './csv-to-json-indexmap -i test.csv -o output-3.json'
+    1.56 ± 0.01 times faster than './csv-to-json-rayon -i test.csv -o output-2.json'
+    1.83 ± 0.01 times faster than './csv-to-json -i test.csv -o output-1.json'
+```
+
+比起原始版快了 83% ，平均用時也壓到兩秒以內了！
