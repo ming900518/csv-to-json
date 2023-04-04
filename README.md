@@ -204,7 +204,10 @@ Summary
 重新閱讀了一次程式，再跑了下
 [flamegraph](https://github.com/flamegraph-rs/flamegraph) ，發現 serde_json 的
 [`to_string`](https://docs.rs/serde_json/1.0.95/serde_json/fn.to_string.html)
-似乎是性能瓶頸
+似乎可以優化一下
+
+> <img width="1440" alt="Screenshot 2023-04-04 at 3 58 09 PM" src="https://user-images.githubusercontent.com/15919723/229726662-5500b642-f33d-4022-8cf6-9df5a2eb93b8.png">
+> 在 Linux PC 跑出來的 flamegraph ，可以發現 `to_string` 裡面用的是普通的 iterator
 
 用單線程跑 570 幾 MB 的資料確實不是很理想，但我花了一整天都沒看出來，太尷尬了 😅
 
