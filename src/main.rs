@@ -10,11 +10,11 @@ use serde_json::to_string;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Specify CSV input file. Required.
+    /// Specify CSV input file. Required
     #[arg(short, long, value_name = "CSV FILE")]
     input: PathBuf,
 
-    /// Specify JSON output file. Optional. (If not set, the result will be printed out directly.)
+    /// Specify JSON output file. Optional (If not set, the result will be printed out directly.)
     #[arg(short, long, value_name = "JSON FILE")]
     output: Option<PathBuf>,
 }

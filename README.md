@@ -1,4 +1,4 @@
-# CSV-to-JSON
+# fast-csv-to-json
 
 A simple CLI tool for converting CSV file content to JSON.
 
@@ -11,7 +11,7 @@ A simple CLI tool for converting CSV file content to JSON.
 Use [`cargo` command](https://crates.io) to install this tool.
 
 ```
-cargo install csv-to-json
+cargo install fast-csv-to-json
 ```
 
 > SIMD optimization has been disabled due to Rust nightly toolchain requirement,
@@ -22,13 +22,13 @@ cargo install csv-to-json
 ## Usage
 
 ```
-CSV to JSON - A simple CLI tool for converting CSV file content to JSON.
+Fast CSV to JSON - A simple CLI tool for converting CSV file content to JSON.
 
-Usage: csv-to-json [OPTIONS] --input <CSV FILE>
+Usage: fast-csv-to-json [OPTIONS] --input <CSV FILE>
 
 Options:
   -i, --input <CSV FILE>    Specify CSV input file. Required
-  -o, --output <JSON FILE>  Specify JSON output file. Optional. (If not set, the result will be printed out directly.)
+  -o, --output <JSON FILE>  Specify JSON output file. Optional (If not set, the result will be printed out directly.)
   -h, --help                Print help
   -V, --version             Print version
 ```
