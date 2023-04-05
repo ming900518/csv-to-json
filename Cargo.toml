@@ -4,10 +4,13 @@ version = "0.3.1"
 edition = "2021"
 authors = ["Ming Chang <mail@mingchang.tw>"]
 description = "CSV to JSON - A simple CLI tool for converting CSV file content to JSON."
+repository = "https://github.com/ming900518/csv-to-json/"
+keywords = ["cli", "csv", "json"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "*", features = ["derive"] }
-polars = { version = "*", features = ["nightly", "performant"] }
+polars = { version = "*", features = ["performant"] }
 indexmap = {version = "*", features = ["serde", "rayon"] }
 mimalloc = "*"
 serde = { version = "*", features = ["derive"] }

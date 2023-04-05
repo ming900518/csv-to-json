@@ -1,10 +1,25 @@
 # CSV-to-JSON
 
-我晚上花了一個小時搓出來的 CSV 轉 JSON CLI 工具。
+A simple CLI tool for converting CSV file content to JSON.
 
-（編輯：似乎變成了性能提升記錄 😂 一小時寫扣一週改扣是吧）
+我花了一個小時搓出來，接著優化了兩天的快速 CSV 轉 JSON CLI 小工具
 
-### Usage
+## Installation
+
+> Install Rust with [rustup](https://rustup.rs) first.
+
+Use [`cargo` command](https://crates.io) to install this tool.
+
+```
+cargo install csv-to-json
+```
+
+> SIMD optimization has been disabled due to Rust nightly toolchain requirement,
+> you can still grab SIMD enabled code from
+> [simd-enabled branch](https://github.com/ming900518/csv-to-json/tree/simd-enabled)
+> and compile this tool manually.
+
+## Usage
 
 ```
 CSV to JSON - A simple CLI tool for converting CSV file content to JSON.
@@ -18,5 +33,6 @@ Options:
   -V, --version             Print version
 ```
 
-## 優化記錄
-[83% 性能提升！CSV 至 JSON 轉換工具優化記錄](https://mingchang.tw/blog/Journey-of-Csv-to-Json-Optimization.md)
+## About this Project
+
+[83% 性能提升！CSV 至 JSON 轉換工具優化記錄 (Blog post written in Chinese)](https://mingchang.tw/blog/Journey-of-Csv-to-Json-Optimization.md)
