@@ -7,6 +7,7 @@ description = "CSV to JSON - A simple CLI tool for converting CSV file content t
 repository = "https://github.com/ming900518/csv-to-json/"
 keywords = ["cli", "csv", "json"]
 categories = ["command-line-utilities"]
+license = "MIT"
 
 [dependencies]
 clap = { version = "*", features = ["derive"] }
